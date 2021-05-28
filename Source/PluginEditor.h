@@ -14,7 +14,7 @@
 //==============================================================================
 /**
 */
-class JomsvikingAudioProcessorEditor  : public juce::AudioProcessorEditor
+class JomsvikingAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Slider::Listener
 {
 public:
     JomsvikingAudioProcessorEditor (JomsvikingAudioProcessor&);
@@ -23,6 +23,7 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    void sliderValueChanged(juce::Slider* slider) override;
 
 private:
     // This reference is provided as a quick way for your editor to
@@ -30,8 +31,13 @@ private:
     JomsvikingAudioProcessor& audioProcessor;
 
     juce::Slider bandOneGainSlider;
+    juce::Label bandOneGainLabel;
+
     juce::Slider bandTwoGainSlider;
+    juce::Label bandTwoGainLabel;
+    
     juce::Slider crossoverSlider;
+    juce::Label crossoverLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JomsvikingAudioProcessorEditor)
 };
