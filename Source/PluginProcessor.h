@@ -53,7 +53,22 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    //=====assets
+    void updateProcessorChains();
+
+    juce::AudioProcessorValueTreeState tree;
+    double bandOneGain;
+    double bandTwoGain;
+
+    std::atomic<float>* pCrossover;
+    std::atomic<float>* pBandOneGain;
+    std::atomic<float>* pBandTwoGain;
+
+    juce::dsp::ProcessorChain<juce::dsp::ProcessorDuplicator<juce::dsp::StateVariableFilter::Filter<float>, juce::dsp::StateVariableFilter::Parameters<float>>, juce::dsp::Gain<float>> bandOneChain;
+    juce::dsp::ProcessorChain<juce::dsp::ProcessorDuplicator<juce::dsp::StateVariableFilter::Filter<float>, juce::dsp::StateVariableFilter::Parameters<float>>, juce::dsp::Gain<float>> bandTwoChain;
+
 private:
+    double mSampleRate;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JomsvikingAudioProcessor)
 };

@@ -29,5 +29,9 @@ private:
     // access the processor object that created it.
     JomsvikingAudioProcessor& audioProcessor;
 
+    juce::Slider bandOneGainSlider;
+    juce::Slider bandTwoGainSlider;
+    juce::Slider crossoverSlider;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JomsvikingAudioProcessorEditor)
 };

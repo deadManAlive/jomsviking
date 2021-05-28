@@ -12,16 +12,24 @@
 //==============================================================================
 JomsvikingAudioProcessor::JomsvikingAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+    : AudioProcessor(BusesProperties()
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)
+#endif
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+#endif
+    ), tree(*this, nullptr, juce::Identifier("Parameters"),
+        {
+            std::make_unique<juce::AudioParameterFloat>("crossover", "crossover", 20.0, 20000.0, 2000.0),
+            std::make_unique<juce::AudioParameterFloat>("bandOneGain", "bandOneGain", 0.0f, 2.0f, 1.0f),
+            std::make_unique<juce::AudioParameterFloat>("bandTwoGain", "bandTwoGain", 0.0f, 2.0f, 1.0f)
+        })
 #endif
 {
+    pCrossover = tree.getRawParameterValue("crossover");
+    pBandOneGain = tree.getRawParameterValue("bandOneGain");
+    pBandTwoGain = tree.getRawParameterValue("bandTwoGain");
 }
 
 JomsvikingAudioProcessor::~JomsvikingAudioProcessor()
@@ -93,13 +101,17 @@ void JomsvikingAudioProcessor::changeProgramName (int index, const juce::String&
 //==============================================================================
 void JomsvikingAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
-    
-    juce::dsp::ProcessSpec specs;
+    mSampleRate = sampleRate;
 
-    specs.sampleRate = sampleRate;
-    specs.maximumBlockSize = samplesPerBlock;
+    juce::dsp::ProcessSpec proSpec;
+    proSpec.sampleRate = sampleRate;
+    proSpec.maximumBlockSize = samplesPerBlock;
+    proSpec.numChannels = getMainBusNumOutputChannels();
+
+    updateProcessorChains();
+
+    bandOneChain.prepare(proSpec);
+    bandTwoChain.prepare(proSpec);
 }
 
 void JomsvikingAudioProcessor::releaseResources()
@@ -139,27 +151,38 @@ void JomsvikingAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
+    auto bufferLength = buffer.getNumSamples();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
+    updateProcessorChains();
 
-        // ..do something to the data...
+    juce::AudioBuffer<float> bandOneBuffer;
+    juce::AudioBuffer<float> bandTwoBuffer;
+    bandOneBuffer.setSize(totalNumInputChannels, bufferLength);
+    bandTwoBuffer.setSize(totalNumInputChannels, bufferLength);
+
+    for (int channel = 0; channel < totalNumInputChannels; ++channel) {
+        auto* channelData = buffer.getWritePointer(channel);
+        auto* bufferData = buffer.getReadPointer(channel);
+
+        bandOneBuffer.copyFrom(channel, 0, bufferData, bufferLength);
+        bandTwoBuffer.copyFrom(channel, 0, bufferData, bufferLength);
+    }
+
+    juce::dsp::AudioBlock<float> bandOneBlock(bandOneBuffer);
+    juce::dsp::AudioBlock<float> bandTwoBlock(bandTwoBuffer);
+    bandOneChain.process(juce::dsp::ProcessContextReplacing<float>(bandOneBlock));
+    bandTwoChain.process(juce::dsp::ProcessContextReplacing<float>(bandTwoBlock));
+
+    buffer.clear();
+
+    for (int channel = 0; channel < totalNumInputChannels; ++channel) {
+        auto* bandOneData = bandOneBuffer.getReadPointer(channel);
+        auto* bandTwoData = bandTwoBuffer.getReadPointer(channel);
+        buffer.addFrom(channel, 0, bandOneData, bufferLength);
+        buffer.addFrom(channel, 0, bandTwoData, bufferLength);
     }
 }
 
@@ -186,6 +209,20 @@ void JomsvikingAudioProcessor::setStateInformation (const void* data, int sizeIn
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+void JomsvikingAudioProcessor::updateProcessorChains() {
+    float crossOver = *pCrossover;
+    float bandonegain = *pBandOneGain;
+    float bandtwogain = *pBandTwoGain;
+
+    bandOneChain.get<0>().state->type = juce::dsp::StateVariableFilter::Parameters<float>::Type::lowPass;
+    bandOneChain.get<0>().state->setCutOffFrequency(mSampleRate, crossOver, (1.0 / juce::MathConstants<double>::sqrt2));
+    bandOneChain.get<1>().setGainLinear(bandOneGain);
+
+    bandTwoChain.get<0>().state->type = juce::dsp::StateVariableFilter::Parameters<float>::Type::highPass;
+    bandTwoChain.get<0>().state->setCutOffFrequency(mSampleRate, crossOver, (1.0 / juce::MathConstants<double>::sqrt2));
+    bandTwoChain.get<1>().setGainLinear(bandTwoGain);
 }
 
 //==============================================================================
