@@ -6,6 +6,10 @@
               companyEmail="embryon.id@gmail.com" pluginFormats="buildVST3"
               pluginVST3Category="Dynamics,Fx" cppLanguageStandard="17">
   <MAINGROUP id="YDze6K" name="Jomsviking">
+    <GROUP id="{4E33448A-4670-95AE-4D28-FCCCF25F5FE8}" name="Resource">
+      <FILE id="cU0i4E" name="Jomsviking Layout.png" compile="0" resource="1"
+            file="D:/null_/DSP/GUI_resources/Jomsviking Layout.png"/>
+    </GROUP>
     <GROUP id="{D3F774C0-761D-A13D-876B-9BDA072A2D23}" name="Source">
       <FILE id="pegy2A" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

@@ -56,16 +56,18 @@ public:
     //=====assets
     void updateProcessorChains();
 
-    juce::AudioProcessorValueTreeState tree;
-    double bandOneGain;
-    double bandTwoGain;
+    //juce::AudioProcessorValueTreeState tree;
+    //double bandOneGain;
+    //double bandTwoGain;
 
-    std::atomic<float>* pCrossover;
-    std::atomic<float>* pBandOneGain;
-    std::atomic<float>* pBandTwoGain;
+    std::atomic<float> pCrossover;
+    std::atomic<float> pBandOneGain;
+    std::atomic<float> pBandTwoGain;
 
-    juce::dsp::ProcessorChain<juce::dsp::ProcessorDuplicator<juce::dsp::StateVariableFilter::Filter<float>, juce::dsp::StateVariableFilter::Parameters<float>>, juce::dsp::Gain<float>> bandOneChain;
-    juce::dsp::ProcessorChain<juce::dsp::ProcessorDuplicator<juce::dsp::StateVariableFilter::Filter<float>, juce::dsp::StateVariableFilter::Parameters<float>>, juce::dsp::Gain<float>> bandTwoChain;
+    //juce::dsp::ProcessorChain<juce::dsp::ProcessorDuplicator<juce::dsp::StateVariableFilter::Filter<float>, juce::dsp::StateVariableFilter::Parameters<float>>, juce::dsp::Gain<float>> bandOneChain;
+    //juce::dsp::ProcessorChain<juce::dsp::ProcessorDuplicator<juce::dsp::StateVariableFilter::Filter<float>, juce::dsp::StateVariableFilter::Parameters<float>>, juce::dsp::Gain<float>> bandTwoChain;
+    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> bandOneChain;
+    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> bandTwoChain;
 
 private:
     double mSampleRate;

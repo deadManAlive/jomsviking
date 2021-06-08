@@ -19,17 +19,12 @@ JomsvikingAudioProcessor::JomsvikingAudioProcessor()
 #endif
         .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-    ), tree(*this, nullptr, juce::Identifier("Parameters"),
-        {
-            std::make_unique<juce::AudioParameterFloat>("crossover", "crossover", 20.0, 20000.0, 2000.0),
-            std::make_unique<juce::AudioParameterFloat>("bandOneGain", "bandOneGain", 0.0f, 2.0f, 1.0f),
-            std::make_unique<juce::AudioParameterFloat>("bandTwoGain", "bandTwoGain", 0.0f, 2.0f, 1.0f)
-        })
+    )
 #endif
 {
-    pCrossover = tree.getRawParameterValue("crossover");
-    pBandOneGain = tree.getRawParameterValue("bandOneGain");
-    pBandTwoGain = tree.getRawParameterValue("bandTwoGain");
+    pBandOneGain = 1.0;
+    pBandTwoGain = 1.0;
+    pCrossover = 2000.0;
 }
 
 JomsvikingAudioProcessor::~JomsvikingAudioProcessor()
@@ -212,17 +207,25 @@ void JomsvikingAudioProcessor::setStateInformation (const void* data, int sizeIn
 }
 
 void JomsvikingAudioProcessor::updateProcessorChains() {
-    float crossOver = *pCrossover;
-    float bandonegain = *pBandOneGain;
-    float bandtwogain = *pBandTwoGain;
+    float crossover = pCrossover;
+    float bandonegain = pBandOneGain;
+    float bandtwogain = pBandTwoGain;
 
-    bandOneChain.get<0>().state->type = juce::dsp::StateVariableFilter::Parameters<float>::Type::lowPass;
-    bandOneChain.get<0>().state->setCutOffFrequency(mSampleRate, crossOver, (1.0 / juce::MathConstants<double>::sqrt2));
-    bandOneChain.get<1>().setGainLinear(bandOneGain);
+    //bandOneChain.get<0>().state->type = juce::dsp::StateVariableFilter::Parameters<float>::Type::lowPass;
+    //bandOneChain.get<0>().state->setCutOffFrequency(mSampleRate, crossover, (1.0 / juce::MathConstants<double>::sqrt2));
+    //bandOneChain.get<1>().setGainLinear(bandonegain);
 
-    bandTwoChain.get<0>().state->type = juce::dsp::StateVariableFilter::Parameters<float>::Type::highPass;
-    bandTwoChain.get<0>().state->setCutOffFrequency(mSampleRate, crossOver, (1.0 / juce::MathConstants<double>::sqrt2));
-    bandTwoChain.get<1>().setGainLinear(bandTwoGain);
+    //bandTwoChain.get<0>().state->type = juce::dsp::StateVariableFilter::Parameters<float>::Type::highPass;
+    //bandTwoChain.get<0>().state->setCutOffFrequency(mSampleRate, crossover, (1.0 / juce::MathConstants<double>::sqrt2));
+    //bandTwoChain.get<1>().setGainLinear(bandtwogain);
+
+    bandOneChain.get<0>().setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    bandOneChain.get<0>().setCutoffFrequency(crossover);
+    bandOneChain.get<1>().setGainLinear(bandonegain);
+
+    bandTwoChain.get<0>().setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    bandTwoChain.get<0>().setCutoffFrequency(crossover);
+    bandTwoChain.get<1>().setGainLinear(bandtwogain);
 }
 
 //==============================================================================
