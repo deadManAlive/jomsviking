@@ -56,18 +56,16 @@ public:
     //=====assets
     void updateProcessorChains();
 
-    //juce::AudioProcessorValueTreeState tree;
-    //double bandOneGain;
-    //double bandTwoGain;
+    std::atomic<float> pCrossoverLM;    //Low-Mid crossover
+    std::atomic<float> pcrossoverMH;    //Mid-Hi crossover
 
-    std::atomic<float> pCrossover;
-    std::atomic<float> pBandOneGain;
-    std::atomic<float> pBandTwoGain;
+    std::atomic<float> pBandGainLow;    //Low Band Gain
+    std::atomic<float> pBandGainMid;
+    std::atomic<float> pBandGainHigh;   //High Band Gain
 
-    //juce::dsp::ProcessorChain<juce::dsp::ProcessorDuplicator<juce::dsp::StateVariableFilter::Filter<float>, juce::dsp::StateVariableFilter::Parameters<float>>, juce::dsp::Gain<float>> bandOneChain;
-    //juce::dsp::ProcessorChain<juce::dsp::ProcessorDuplicator<juce::dsp::StateVariableFilter::Filter<float>, juce::dsp::StateVariableFilter::Parameters<float>>, juce::dsp::Gain<float>> bandTwoChain;
-    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> bandOneChain;
-    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> bandTwoChain;
+    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> bandChainLow;
+    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> bandChainMid;
+    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> bandChainHigh;
 
 private:
     double mSampleRate;

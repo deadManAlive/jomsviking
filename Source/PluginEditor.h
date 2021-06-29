@@ -30,14 +30,20 @@ private:
     // access the processor object that created it.
     JomsvikingAudioProcessor& audioProcessor;
 
-    juce::Slider bandOneGainSlider;
-    juce::Label bandOneGainLabel;
+    juce::Slider bandGainSliderLow;
+    juce::Label bandGainLabelLow;
 
-    juce::Slider bandTwoGainSlider;
-    juce::Label bandTwoGainLabel;
+    juce::Slider bandGainSliderMid;
+    juce::Label bandGainLabelMid;
+
+    juce::Slider bandGainSliderHigh;
+    juce::Label bandGainLabelHigh;
     
-    juce::Slider crossoverSlider;
-    juce::Label crossoverLabel;
+    juce::Slider crossoverSliderLM;
+    juce::Label crossoverLabelLM;
+
+    juce::Slider crossoverSliderMH;
+    juce::Label crossoverLabelMH;
 
     juce::Image sectorizationBGImage;
 
