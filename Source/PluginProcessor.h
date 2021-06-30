@@ -63,19 +63,9 @@ public:
     std::atomic<float> pBandGainMid;
     std::atomic<float> pBandGainHigh;   //High Band Gain
 
-    //1st stage
-    juce::dsp::LinkwitzRileyFilter<float> fFirstStageLowPass;
-    juce::dsp::LinkwitzRileyFilter<float> fFirstStageHighPass;
-    //2nd stage
-    juce::dsp::LinkwitzRileyFilter<float> fScndStageLowPass;
-    juce::dsp::LinkwitzRileyFilter<float> fScndStageHighPass;
-    //3rd stage
-    juce::dsp::LinkwitzRileyFilter<float> fLowBandAPF;
-
-    //gain
-    juce::dsp::Gain<float> mLowBandGain;
-    juce::dsp::Gain<float> mMidBandGain;
-    juce::dsp::Gain<float> mHighBandGain;
+    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fLowBandChain;
+    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fMidBandChain;
+    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fHIghBandChain;
 
 private:
     double mSampleRate;
