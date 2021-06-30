@@ -63,6 +63,7 @@ public:
     std::atomic<float> pBandGainMid;
     std::atomic<float> pBandGainHigh;   //High Band Gain
 
+    //crossover + input gain process
     juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fLowBandChain;
     juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fMidBandChain;
     juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fHIghBandChain;
