@@ -28,6 +28,12 @@ JomsvikingAudioProcessor::JomsvikingAudioProcessor()
 
     pcrossoverMH = 2000.0;
     pCrossoverLM = 100.0;
+
+    fFirstStageLowPass.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    fFirstStageHighPass.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    fScndStageLowPass.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    fScndStageHighPass.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    fLowBandAPF.setType(juce::dsp::LinkwitzRileyFilterType::allpass);
 }
 
 JomsvikingAudioProcessor::~JomsvikingAudioProcessor()
@@ -108,9 +114,15 @@ void JomsvikingAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
 
     updateProcessorChains();
 
-    bandChainLow.prepare(proSpec);
-    bandChainMid.prepare(proSpec);
-    bandChainHigh.prepare(proSpec);
+    fFirstStageLowPass.prepare(proSpec);
+    fFirstStageHighPass.prepare(proSpec);
+    fScndStageLowPass.prepare(proSpec);
+    fScndStageHighPass.prepare(proSpec);
+    fLowBandAPF.prepare(proSpec);
+
+    mLowBandGain.prepare(proSpec);
+    mMidBandGain.prepare(proSpec);
+    mHighBandGain.prepare(proSpec);
 }
 
 void JomsvikingAudioProcessor::releaseResources()
@@ -179,10 +191,23 @@ void JomsvikingAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     juce::dsp::AudioBlock<float> bandBlockMid(bandBufferMid);
     juce::dsp::AudioBlock<float> bandBlockHigh(bandBufferHigh);
 
+    //CROSSOVER
+    //1st stage [Low | Mid-High]
+    fFirstStageLowPass.process(juce::dsp::ProcessContextReplacing<float>(bandBlockLow));
+    fFirstStageHighPass.process(juce::dsp::ProcessContextReplacing<float>(bandBlockMid)); //mid contains mid-hi
+    fFirstStageHighPass.process(juce::dsp::ProcessContextReplacing<float>(bandBlockHigh)); //hi contains mid-hi
 
-    bandChainLow.process(juce::dsp::ProcessContextReplacing<float>(bandBlockLow));
-    bandChainMid.process(juce::dsp::ProcessContextReplacing<float>(bandBlockMid));
-    bandChainHigh.process(juce::dsp::ProcessContextReplacing<float>(bandBlockHigh));
+    //2nd stage [mid | high]
+    fScndStageLowPass.process(juce::dsp::ProcessContextReplacing<float>(bandBlockMid)); //pure mid
+    fScndStageHighPass.process(juce::dsp::ProcessContextReplacing<float>(bandBlockHigh)); //pure high
+
+    //3rd stage
+    fLowBandAPF.process(juce::dsp::ProcessContextReplacing<float>(bandBlockLow)); //phase inverter.
+    
+    //PROCESS
+    mLowBandGain.process(juce::dsp::ProcessContextReplacing<float>(bandBlockLow));
+    mMidBandGain.process(juce::dsp::ProcessContextReplacing<float>(bandBlockMid));
+    mHighBandGain.process(juce::dsp::ProcessContextReplacing<float>(bandBlockHigh));
 
     buffer.clear();
 
@@ -230,23 +255,22 @@ void JomsvikingAudioProcessor::updateProcessorChains() {
     float fBandGainMid = pBandGainMid;
     float fBandGainHigh = pBandGainHigh;
 
-    bandChainLow.get<0>().setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
-    bandChainLow.get<0>().setCutoffFrequency(crossoverLM);
-    bandChainLow.get<1>().setType(juce::dsp::LinkwitzRileyFilterType::allpass);
-    bandChainLow.get<1>().setCutoffFrequency(crossoverMH);
-    bandChainLow.get<2>().setGainLinear(fBandGainLow);
+    //fFirstStageLowPass.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    fFirstStageLowPass.setCutoffFrequency(crossoverLM);
+    //fFirstStageHighPass.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    fFirstStageHighPass.setCutoffFrequency(crossoverLM);
 
-    bandChainMid.get<0>().setType(juce::dsp::LinkwitzRileyFilterType::highpass);
-    bandChainMid.get<0>().setCutoffFrequency(crossoverLM);
-    bandChainMid.get<1>().setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
-    bandChainMid.get<1>().setCutoffFrequency(crossoverMH);
-    bandChainMid.get<2>().setGainLinear(fBandGainMid);
+    //fScndStageLowPass.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    fScndStageLowPass.setCutoffFrequency(crossoverMH);
+    //fScndStageHighPass.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    fScndStageHighPass.setCutoffFrequency(crossoverMH);
 
-    bandChainHigh.get<0>().setType(juce::dsp::LinkwitzRileyFilterType::highpass);
-    bandChainHigh.get<0>().setCutoffFrequency(crossoverMH);
-    bandChainHigh.get<1>().setType(juce::dsp::LinkwitzRileyFilterType::allpass);
-    bandChainHigh.get<1>().setCutoffFrequency(crossoverLM);
-    bandChainHigh.get<2>().setGainLinear(fBandGainHigh);
+    //fLowBandAPF.setType(juce::dsp::LinkwitzRileyFilterType::allpass);
+    fLowBandAPF.setCutoffFrequency(crossoverMH);
+
+    mLowBandGain.setGainLinear(fBandGainLow);
+    mMidBandGain.setGainLinear(fBandGainMid);
+    mHighBandGain.setGainLinear(fBandGainHigh);
 }
 
 //==============================================================================
