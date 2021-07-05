@@ -3,7 +3,7 @@
 <JUCERPROJECT id="TjAxvv" name="Jomsviking" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="0.0.1"
               companyName="Twillight's Sound" companyCopyright="GPLv3" companyWebsite="arsdotfm.wordpress.com"
-              companyEmail="embryon.id@gmail.com" pluginFormats="buildVST3"
+              companyEmail="embryon.id@gmail.com" pluginFormats="buildStandalone,buildVST3"
               pluginVST3Category="Dynamics,Fx" cppLanguageStandard="17">
   <MAINGROUP id="YDze6K" name="Jomsviking">
     <GROUP id="{4E33448A-4670-95AE-4D28-FCCCF25F5FE8}" name="Resource">

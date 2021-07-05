@@ -108,8 +108,6 @@ void JomsvikingAudioProcessor::changeProgramName (int index, const juce::String&
 //==============================================================================
 void JomsvikingAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    mSampleRate = sampleRate;
-
     juce::dsp::ProcessSpec proSpec;
     proSpec.sampleRate = sampleRate;
     proSpec.maximumBlockSize = samplesPerBlock;
@@ -160,12 +158,11 @@ void JomsvikingAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     auto bufferLength = buffer.getNumSamples();
+    updateProcessorChains();
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
-
-    updateProcessorChains();
 
     juce::AudioBuffer<float> bandBufferLow;
     juce::AudioBuffer<float> bandBufferHigh;
@@ -213,7 +210,9 @@ bool JomsvikingAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* JomsvikingAudioProcessor::createEditor()
 {
-    return new JomsvikingAudioProcessorEditor (*this);
+    //return new JomsvikingAudioProcessorEditor (*this); //switch to get jomsviking GUI
+    return new juce::GenericAudioProcessorEditor(*this);
+
 }
 
 //==============================================================================
@@ -228,6 +227,38 @@ void JomsvikingAudioProcessor::setStateInformation (const void* data, int sizeIn
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout JomsvikingAudioProcessor::paramLayoutGen() {
+    juce::AudioProcessorValueTreeState::ParameterLayout playout;
+
+    std::unique_ptr<juce::AudioParameterFloat> tsCrossoverLM(new juce::AudioParameterFloat("lcrossover", "Lower Crossover", 30.f, 2000.f, 1000.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsCrossoverMH(new juce::AudioParameterFloat("rcrossover", "Upper Crossover", 2000.f, 16000.f, 4000.f));
+
+    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultLow(new juce::AudioParameterFloat("iGainLow", "Low Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.25f), 1.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultMid(new juce::AudioParameterFloat("iGainMid", "Mid Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.25f), 1.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultHgh(new juce::AudioParameterFloat("iGainHgh", "High Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.25f), 1.f));
+
+    juce::StringArray oversamplingOptStr;
+    oversamplingOptStr.add("No Oversampling");
+    for (int i = 1; i <= 6; i++) {
+        juce::String opt;
+        opt << pow(2, i);
+        opt << "x";
+        oversamplingOptStr.add(opt);
+    }
+
+    std::unique_ptr<juce::AudioParameterChoice> oversamplingOpt(new juce::AudioParameterChoice("oversampling", "Oversamplping", oversamplingOptStr, 0));
+
+    playout.add(std::move(tsCrossoverLM),
+                std::move(tsCrossoverMH),
+                std::move(tsInGainMultLow),
+                std::move(tsInGainMultMid),
+                std::move(tsInGainMultHgh),
+                std::move(oversamplingOpt)
+                );
+
+    return playout;
 }
 
 void JomsvikingAudioProcessor::updateProcessorChains() {

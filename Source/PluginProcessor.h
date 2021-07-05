@@ -53,7 +53,12 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    //=====assets
+    //state
+    static juce::AudioProcessorValueTreeState::ParameterLayout paramLayoutGen();
+
+    juce::AudioProcessorValueTreeState processTreeState = {*this, nullptr, "prm_state", paramLayoutGen()};
+
+    //assets
     void updateProcessorChains();
 
     std::atomic<float> pCrossoverLM;    //Low-Mid crossover
@@ -69,7 +74,6 @@ public:
     juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fHIghBandChain;
 
 private:
-    double mSampleRate;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JomsvikingAudioProcessor)
 };
