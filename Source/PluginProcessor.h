@@ -61,13 +61,6 @@ public:
     //assets
     void updateProcessorChains();
 
-    //std::atomic<float> pCrossoverLM;    //Low-Mid crossover
-    //std::atomic<float> pcrossoverMH;    //Mid-Hi crossover
-
-    //std::atomic<float> pBandGainLow;    //Low Band Gain
-    //std::atomic<float> pBandGainMid;
-    //std::atomic<float> pBandGainHigh;   //High Band Gain
-
     //crossover + input gain process
     juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fLowBandChain;
     juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fMidBandChain;

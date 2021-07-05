@@ -215,23 +215,30 @@ void JomsvikingAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    juce::MemoryOutputStream memos(destData, true);
+    processTreeState.state.writeToStream(memos);
 }
 
 void JomsvikingAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    auto stateTree = juce::ValueTree::readFromData(data, sizeInBytes);
+    if (stateTree.isValid()) {
+        processTreeState.replaceState(stateTree);
+        updateProcessorChains();
+    }
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout JomsvikingAudioProcessor::paramLayoutGen() {
     juce::AudioProcessorValueTreeState::ParameterLayout playout;
 
-    std::unique_ptr<juce::AudioParameterFloat> tsCrossoverLM(new juce::AudioParameterFloat("lcrossover", "Lower Crossover", 30.f, 2000.f, 1000.f));
-    std::unique_ptr<juce::AudioParameterFloat> tsCrossoverMH(new juce::AudioParameterFloat("rcrossover", "Upper Crossover", 2000.f, 16000.f, 4000.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsCrossoverLM(new juce::AudioParameterFloat("lcrossover", "Lower Crossover", juce::NormalisableRange<float>(30.f, 2000.f, 1.0f, 0.5f), 50.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsCrossoverMH(new juce::AudioParameterFloat("rcrossover", "Upper Crossover", juce::NormalisableRange<float>(2000.f, 16000.f, 1.0f, 0.5f), 4000.f));
 
-    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultLow(new juce::AudioParameterFloat("low_ingain", "Low Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.75f), 1.f));
-    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultMid(new juce::AudioParameterFloat("mid_ingain", "Mid Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.75f), 1.f));
-    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultHgh(new juce::AudioParameterFloat("hgh_ingain", "High Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.75f), 1.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultLow(new juce::AudioParameterFloat("low_ingain", "Low Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 1.0f), 1.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultMid(new juce::AudioParameterFloat("mid_ingain", "Mid Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 1.0f), 1.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultHgh(new juce::AudioParameterFloat("hgh_ingain", "High Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 1.0f), 1.f));
 
     juce::StringArray oversamplingOptStr;
     oversamplingOptStr.add("No Oversampling");
@@ -242,7 +249,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout JomsvikingAudioProcessor::pa
         oversamplingOptStr.add(opt);
     }
 
-    std::unique_ptr<juce::AudioParameterChoice> oversamplingOpt(new juce::AudioParameterChoice("oversampling", "Oversamplping", oversamplingOptStr, 0));
+    std::unique_ptr<juce::AudioParameterChoice> oversamplingOpt(new juce::AudioParameterChoice("oversampling", "Oversampling", oversamplingOptStr, 0));
 
     playout.add(std::move(tsCrossoverLM),
                 std::move(tsCrossoverMH),
@@ -253,6 +260,21 @@ juce::AudioProcessorValueTreeState::ParameterLayout JomsvikingAudioProcessor::pa
                 );
 
     return playout;
+}
+
+ProcessorSettings getProcessorSettings(juce::AudioProcessorValueTreeState& apvts) {
+    ProcessorSettings settings;
+
+    settings.tsLXover = apvts.getRawParameterValue("lcrossover")->load();
+    settings.tsRXover = apvts.getRawParameterValue("rcrossover")->load();
+
+    settings.tsLowInGain = apvts.getRawParameterValue("low_ingain")->load();
+    settings.tsMidInGain = apvts.getRawParameterValue("mid_ingain")->load();
+    settings.tsHghInGain = apvts.getRawParameterValue("hgh_ingain")->load();
+
+    settings.oversmpMult = apvts.getRawParameterValue("oversampling")->load();
+
+    return settings;
 }
 
 void JomsvikingAudioProcessor::updateProcessorChains() {
@@ -276,19 +298,4 @@ void JomsvikingAudioProcessor::updateProcessorChains() {
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new JomsvikingAudioProcessor();
-}
-
-ProcessorSettings getProcessorSettings(juce::AudioProcessorValueTreeState& apvts) {
-    ProcessorSettings settings;
-
-    settings.tsLXover = apvts.getRawParameterValue("lcrossover")->load();
-    settings.tsRXover = apvts.getRawParameterValue("rcrossover")->load();
-
-    settings.tsLowInGain = apvts.getRawParameterValue("low_ingain")->load();
-    settings.tsMidInGain = apvts.getRawParameterValue("mid_ingain")->load();
-    settings.tsHghInGain = apvts.getRawParameterValue("hgh_ingain")->load();
-
-    settings.oversmpMult = apvts.getRawParameterValue("oversampling")->load();
-
-    return settings;
 }

@@ -14,6 +14,12 @@
 //==============================================================================
 /**
 */
+struct CustomRotary : juce::Slider {
+    CustomRotary() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow) {
+
+    }
+};
+
 class JomsvikingAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Slider::Listener
 {
 public:
@@ -30,22 +36,15 @@ private:
     // access the processor object that created it.
     JomsvikingAudioProcessor& audioProcessor;
 
-    juce::Slider bandGainSliderLow;
-    juce::Label bandGainLabelLow;
-
-    juce::Slider bandGainSliderMid;
-    juce::Label bandGainLabelMid;
-
-    juce::Slider bandGainSliderHigh;
-    juce::Label bandGainLabelHigh;
-    
-    juce::Slider crossoverSliderLM;
-    juce::Label crossoverLabelLM;
-
-    juce::Slider crossoverSliderMH;
-    juce::Label crossoverLabelMH;
-
     juce::Image sectorizationBGImage;
+
+    CustomRotary lcrossSlider, rcrossSlider, inGainLowSlider, inGainMidSlider, inGainHghSlider;
+    juce::ComboBox oversamplingDropdown;
+
+    juce::AudioProcessorValueTreeState::SliderAttachment lcrossSliderAttachment, rcrossSliderAttachment, inGainLowSliderAttachment, inGainMidSliderAttachment, inGainHghSliderAttachment;
+    juce::AudioProcessorValueTreeState::ComboBoxAttachment oversamplingDropdownAttachment;
+
+    std::vector<juce::Component*> getComponents();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JomsvikingAudioProcessorEditor)
 };
