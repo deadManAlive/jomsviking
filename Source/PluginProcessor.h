@@ -61,12 +61,12 @@ public:
     //assets
     void updateProcessorChains();
 
-    std::atomic<float> pCrossoverLM;    //Low-Mid crossover
-    std::atomic<float> pcrossoverMH;    //Mid-Hi crossover
+    //std::atomic<float> pCrossoverLM;    //Low-Mid crossover
+    //std::atomic<float> pcrossoverMH;    //Mid-Hi crossover
 
-    std::atomic<float> pBandGainLow;    //Low Band Gain
-    std::atomic<float> pBandGainMid;
-    std::atomic<float> pBandGainHigh;   //High Band Gain
+    //std::atomic<float> pBandGainLow;    //Low Band Gain
+    //std::atomic<float> pBandGainMid;
+    //std::atomic<float> pBandGainHigh;   //High Band Gain
 
     //crossover + input gain process
     juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fLowBandChain;
@@ -77,3 +77,17 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JomsvikingAudioProcessor)
 };
+
+struct ProcessorSettings {
+    float tsLXover{100.f};
+    float tsRXover{2000.f};
+
+    float tsLowInGain{1.f};
+    float tsMidInGain{1.f};
+    float tsHghInGain{1.f};
+
+    int oversmpMult{ 1 };
+};
+
+ProcessorSettings getProcessorSettings(juce::AudioProcessorValueTreeState& apvts);
+

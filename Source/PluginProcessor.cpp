@@ -22,13 +22,6 @@ JomsvikingAudioProcessor::JomsvikingAudioProcessor()
     )
 #endif
 {
-    pBandGainLow = 1.0;
-    pBandGainHigh = 1.0;
-    pBandGainMid = 1.0;
-
-    pcrossoverMH = 2000.0;
-    pCrossoverLM = 100.0;
-
     fLowBandChain.get<0>().setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
     fLowBandChain.get<1>().setType(juce::dsp::LinkwitzRileyFilterType::allpass);
 
@@ -113,11 +106,11 @@ void JomsvikingAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     proSpec.maximumBlockSize = samplesPerBlock;
     proSpec.numChannels = getMainBusNumOutputChannels();
 
-    updateProcessorChains();
-
     fLowBandChain.prepare(proSpec);
     fMidBandChain.prepare(proSpec);
     fHIghBandChain.prepare(proSpec);
+
+    updateProcessorChains();
 }
 
 void JomsvikingAudioProcessor::releaseResources()
@@ -164,6 +157,7 @@ void JomsvikingAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
+        
     juce::AudioBuffer<float> bandBufferLow;
     juce::AudioBuffer<float> bandBufferHigh;
     juce::AudioBuffer<float> bandBufferMid;
@@ -235,9 +229,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout JomsvikingAudioProcessor::pa
     std::unique_ptr<juce::AudioParameterFloat> tsCrossoverLM(new juce::AudioParameterFloat("lcrossover", "Lower Crossover", 30.f, 2000.f, 1000.f));
     std::unique_ptr<juce::AudioParameterFloat> tsCrossoverMH(new juce::AudioParameterFloat("rcrossover", "Upper Crossover", 2000.f, 16000.f, 4000.f));
 
-    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultLow(new juce::AudioParameterFloat("iGainLow", "Low Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.25f), 1.f));
-    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultMid(new juce::AudioParameterFloat("iGainMid", "Mid Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.25f), 1.f));
-    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultHgh(new juce::AudioParameterFloat("iGainHgh", "High Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.25f), 1.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultLow(new juce::AudioParameterFloat("low_ingain", "Low Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.75f), 1.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultMid(new juce::AudioParameterFloat("mid_ingain", "Mid Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.75f), 1.f));
+    std::unique_ptr<juce::AudioParameterFloat> tsInGainMultHgh(new juce::AudioParameterFloat("hgh_ingain", "High Band Input Gain", juce::NormalisableRange<float>(0.f, 2.f, 0.01f, 0.75f), 1.f));
 
     juce::StringArray oversamplingOptStr;
     oversamplingOptStr.add("No Oversampling");
@@ -262,24 +256,19 @@ juce::AudioProcessorValueTreeState::ParameterLayout JomsvikingAudioProcessor::pa
 }
 
 void JomsvikingAudioProcessor::updateProcessorChains() {
-    float crossoverLM = pCrossoverLM;
-    float crossoverMH = pcrossoverMH;
+    auto settingsCtr = getProcessorSettings(processTreeState);
 
-    float fBandGainLow = pBandGainLow;
-    float fBandGainMid = pBandGainMid;
-    float fBandGainHigh = pBandGainHigh;
+    fLowBandChain.get<0>().setCutoffFrequency(settingsCtr.tsLXover);
+    fLowBandChain.get<1>().setCutoffFrequency(settingsCtr.tsRXover);
+    fLowBandChain.get<2>().setGainLinear(settingsCtr.tsLowInGain);
 
-    fLowBandChain.get<0>().setCutoffFrequency(crossoverLM);
-    fLowBandChain.get<1>().setCutoffFrequency(crossoverMH);
-    fLowBandChain.get<2>().setGainLinear(fBandGainLow);
+    fMidBandChain.get<0>().setCutoffFrequency(settingsCtr.tsLXover);
+    fMidBandChain.get<1>().setCutoffFrequency(settingsCtr.tsRXover);
+    fMidBandChain.get<2>().setGainLinear(settingsCtr.tsMidInGain);
 
-    fMidBandChain.get<0>().setCutoffFrequency(crossoverLM);
-    fMidBandChain.get<1>().setCutoffFrequency(crossoverMH);
-    fMidBandChain.get<2>().setGainLinear(fBandGainMid);
-
-    fHIghBandChain.get<0>().setCutoffFrequency(crossoverLM);
-    fHIghBandChain.get<1>().setCutoffFrequency(crossoverMH);
-    fHIghBandChain.get<2>().setGainLinear(fBandGainHigh);
+    fHIghBandChain.get<0>().setCutoffFrequency(settingsCtr.tsLXover);
+    fHIghBandChain.get<1>().setCutoffFrequency(settingsCtr.tsRXover);
+    fHIghBandChain.get<2>().setGainLinear(settingsCtr.tsHghInGain);
 }
 
 //==============================================================================
@@ -287,4 +276,19 @@ void JomsvikingAudioProcessor::updateProcessorChains() {
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new JomsvikingAudioProcessor();
+}
+
+ProcessorSettings getProcessorSettings(juce::AudioProcessorValueTreeState& apvts) {
+    ProcessorSettings settings;
+
+    settings.tsLXover = apvts.getRawParameterValue("lcrossover")->load();
+    settings.tsRXover = apvts.getRawParameterValue("rcrossover")->load();
+
+    settings.tsLowInGain = apvts.getRawParameterValue("low_ingain")->load();
+    settings.tsMidInGain = apvts.getRawParameterValue("mid_ingain")->load();
+    settings.tsHghInGain = apvts.getRawParameterValue("hgh_ingain")->load();
+
+    settings.oversmpMult = apvts.getRawParameterValue("oversampling")->load();
+
+    return settings;
 }

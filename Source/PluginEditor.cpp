@@ -126,12 +126,12 @@ void JomsvikingAudioProcessorEditor::resized()
 }
 
 void JomsvikingAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
-    audioProcessor.pBandGainLow = bandGainSliderLow.getValue();
-    audioProcessor.pBandGainMid = bandGainSliderMid.getValue();
-    audioProcessor.pBandGainHigh = bandGainSliderHigh.getValue();
+    //audioProcessor.pBandGainLow = bandGainSliderLow.getValue();
+    //audioProcessor.pBandGainMid = bandGainSliderMid.getValue();
+    //audioProcessor.pBandGainHigh = bandGainSliderHigh.getValue();
 
-    audioProcessor.pCrossoverLM = crossoverSliderLM.getValue();
-    audioProcessor.pcrossoverMH = crossoverSliderMH.getValue();
+    //audioProcessor.pCrossoverLM = crossoverSliderLM.getValue();
+    //audioProcessor.pcrossoverMH = crossoverSliderMH.getValue();
 
     crossoverSliderLM.setRange(20.0, crossoverSliderMH.getValue() < 3000.0?crossoverSliderMH.getValue():3000.0);
     crossoverSliderMH.setRange(crossoverSliderLM.getValue() > 300?crossoverSliderLM.getValue():300.0, 16000.0);
