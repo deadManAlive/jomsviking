@@ -38,11 +38,21 @@ private:
 
     juce::Image sectorizationBGImage;
 
-    CustomRotary lcrossSlider, rcrossSlider, inGainLowSlider, inGainMidSlider, inGainHghSlider;
+    //sliders
+    juce::Slider lcrossSlider{ juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow };
+    juce::Slider rcrossSlider{ juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow };
+    juce::Slider inGainLowSlider{ juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow };
+    juce::Slider inGainMidSlider{ juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow };
+    juce::Slider inGainHghSlider{ juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow };
     juce::ComboBox oversamplingDropdown;
 
-    juce::AudioProcessorValueTreeState::SliderAttachment lcrossSliderAttachment, rcrossSliderAttachment, inGainLowSliderAttachment, inGainMidSliderAttachment, inGainHghSliderAttachment;
-    juce::AudioProcessorValueTreeState::ComboBoxAttachment oversamplingDropdownAttachment;
+    //slider attachment
+    juce::AudioProcessorValueTreeState::SliderAttachment lcrossSliderAttachment{ audioProcessor.processTreeState, "lcrossover", lcrossSlider };
+    juce::AudioProcessorValueTreeState::SliderAttachment rcrossSliderAttachment{ audioProcessor.processTreeState, "rcrossover", rcrossSlider };
+    juce::AudioProcessorValueTreeState::SliderAttachment inGainLowSliderAttachment{ audioProcessor.processTreeState, "low_ingain", inGainLowSlider };
+    juce::AudioProcessorValueTreeState::SliderAttachment inGainMidSliderAttachment{ audioProcessor.processTreeState, "mid_ingain", inGainMidSlider };
+    juce::AudioProcessorValueTreeState::SliderAttachment inGainHghSliderAttachment{ audioProcessor.processTreeState, "hgh_ingain", inGainHghSlider };
+    juce::AudioProcessorValueTreeState::ComboBoxAttachment oversamplingDropdownAttachment{audioProcessor.processTreeState, "oversampling", oversamplingDropdown};
 
     std::vector<juce::Component*> getComponents();
 

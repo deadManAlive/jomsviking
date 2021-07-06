@@ -11,20 +11,14 @@
 
 //==============================================================================
 JomsvikingAudioProcessorEditor::JomsvikingAudioProcessorEditor (JomsvikingAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p),
-    lcrossSliderAttachment(audioProcessor.processTreeState, "lcrossover", lcrossSlider),
-    rcrossSliderAttachment(audioProcessor.processTreeState, "rcrossover", rcrossSlider),
-    inGainLowSliderAttachment(audioProcessor.processTreeState, "low_ingain", inGainLowSlider),
-    inGainMidSliderAttachment(audioProcessor.processTreeState, "mid_ingain", inGainMidSlider),
-    inGainHghSliderAttachment(audioProcessor.processTreeState, "hgh_ingain", inGainHghSlider),
-    oversamplingDropdownAttachment(audioProcessor.processTreeState, "oversampling", oversamplingDropdown)
+    : AudioProcessorEditor (&p), audioProcessor (p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
     //oversampling
     oversamplingDropdown.addItem("No Oversampling", 1);
-    for (int i = 1; i <= 6; i++) {
+    for (int i = 2; i <= 7; i++) {
         juce::String opt;
         opt << pow(2, i);
         opt << "x";

@@ -61,25 +61,44 @@ public:
     //assets
     void updateProcessorChains();
 
-    //crossover + input gain process
-    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fLowBandChain;
-    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fMidBandChain;
-    juce::dsp::ProcessorChain<juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::LinkwitzRileyFilter<float>, juce::dsp::Gain<float>> fHIghBandChain;
+    //multiband process
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float>,
+                              juce::dsp::LinkwitzRileyFilter<float>,
+                              juce::dsp::LinkwitzRileyFilter<float>,
+                              juce::dsp::Gain<float>> fLowBandChain;
+
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float>,
+                              juce::dsp::LinkwitzRileyFilter<float>,
+                              juce::dsp::LinkwitzRileyFilter<float>,
+                              juce::dsp::Gain<float>> fMidBandChain;
+
+    juce::dsp::ProcessorChain<juce::dsp::Gain<float>,
+                              juce::dsp::LinkwitzRileyFilter<float>, 
+                              juce::dsp::LinkwitzRileyFilter<float>,
+                              juce::dsp::Gain<float>> fHIghBandChain;
 
 private:
     //==============================================================================
+    enum FilterChain {
+        inGain,
+        cuttingFilter,
+        allPassFilter,
+        bandPreGain
+    };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JomsvikingAudioProcessor)
 };
 
 struct ProcessorSettings {
-    float tsLXover{100.f};
-    float tsRXover{2000.f};
-
-    float tsLowInGain{1.f};
-    float tsMidInGain{1.f};
-    float tsHghInGain{1.f};
-
     int oversmpMult{ 1 };
+
+    float mainInGain{ 1.f };
+
+    float tsLXover{ 100.f };
+    float tsRXover{ 2000.f };
+
+    float tsLowInGain{ 1.f };
+    float tsMidInGain{ 1.f };
+    float tsHghInGain{ 1.f };
 };
 
 ProcessorSettings getProcessorSettings(juce::AudioProcessorValueTreeState& apvts);
