@@ -6,7 +6,7 @@ project(JOMSVIKING VERSION 0.0.1)
 
 
 # find_package(JUCE CONFIG REQUIRED)
-add_subdirectory(JUCE)
+add_subdirectory(Lib/JUCE)
 
 juce_add_plugin(Jomsviking
 	VERSION "0.0.1"
