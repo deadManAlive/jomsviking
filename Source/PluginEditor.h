@@ -9,6 +9,7 @@
 #pragma once
 
 #include "PluginProcessor.h"
+#include "ff_meters/ff_meters.h"
 
 //==============================================================================
 /**
@@ -54,6 +55,11 @@ private:
     juce::AudioProcessorValueTreeState::ComboBoxAttachment oversamplingDropdownAttachment{audioProcessor.processTreeState, "oversampling", oversamplingDropdown};
 
     std::vector<juce::Component*> getComponents();
+
+    juce::ScopedPointer<FFAU::LevelMeterLookAndFeel> lnf;
+    juce::ScopedPointer<FFAU::LevelMeter> lowPostMeter;
+    juce::ScopedPointer<FFAU::LevelMeter> midPostMeter;
+    juce::ScopedPointer<FFAU::LevelMeter> hghPostMeter;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JomsvikingAudioProcessorEditor)
 };

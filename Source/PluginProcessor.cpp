@@ -183,6 +183,10 @@ void JomsvikingAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     fMidBandChain.process(juce::dsp::ProcessContextReplacing<float>(bandBlockMid));
     fHIghBandChain.process(juce::dsp::ProcessContextReplacing<float>(bandBlockHigh));
 
+    meterSource[0].measureBlock(bandBufferLow);
+    meterSource[1].measureBlock(bandBufferMid);
+    meterSource[2].measureBlock(bandBufferHigh);
+
     buffer.clear();
 
     for (int channel = 0; channel < totalNumInputChannels; ++channel) {
@@ -194,6 +198,8 @@ void JomsvikingAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         buffer.addFrom(channel, 0, bandDataMid, bufferLength);
         buffer.addFrom(channel, 0, bandDataHigh, bufferLength);
     }
+
+    // meterSource.measureBlock(buffer);
 }
 
 //==============================================================================
@@ -306,4 +312,9 @@ void JomsvikingAudioProcessor::updateProcessorChains() {
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new JomsvikingAudioProcessor();
+}
+
+
+FFAU::LevelMeterSource* JomsvikingAudioProcessor::getMeterSource(int n){
+    return &meterSource[n];
 }

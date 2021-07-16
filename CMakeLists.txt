@@ -8,6 +8,9 @@ project(JOMSVIKING VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 17)
 add_subdirectory(Lib)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS YES)
+option(JUCE_ENABLE_MODULE_SOURCE_GROUPS "Enable Module Source Groups" ON)
+
 juce_add_plugin(Jomsviking
 	COMPANY_NAME "Twillight's Sound"
 	COMPANY_COPYRIGHT "GPLv3"
@@ -56,6 +59,7 @@ target_link_libraries(Jomsviking
     juce::juce_graphics
     juce::juce_gui_basics
     juce::juce_gui_extra
+    ff_meters
   PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags

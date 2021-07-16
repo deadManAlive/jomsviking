@@ -11,6 +11,7 @@
 //#include <JuceHeader.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_dsp/juce_dsp.h>
+#include "ff_meters/ff_meters.h"
 //==============================================================================
 /**
 */
@@ -62,6 +63,10 @@ public:
     //assets
     void updateProcessorChains();
 
+    //meter
+    //std::vector<FFAU::LevelMeterSource*> getMeterSource();
+    FFAU::LevelMeterSource* getMeterSource(int n);
+
     //multiband process
     juce::dsp::ProcessorChain<juce::dsp::Gain<float>,
                               juce::dsp::LinkwitzRileyFilter<float>,
@@ -80,6 +85,11 @@ public:
 
 private:
     //==============================================================================
+    //meters
+    
+    //FFAU::LevelMeterSource meterSource;
+    std::array<FFAU::LevelMeterSource, 3> meterSource; //low, mid, high
+
     enum FilterChain {
         inGain,
         cuttingFilter,

@@ -17,6 +17,25 @@ JomsvikingAudioProcessorEditor::JomsvikingAudioProcessorEditor (JomsvikingAudioP
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
+    lnf = new FFAU::LevelMeterLookAndFeel();
+    lnf->setColour(FFAU::LevelMeter::lmMeterGradientLowColour, juce::Colours::green);
+    
+    lowPostMeter = new FFAU::LevelMeter();
+    midPostMeter = new FFAU::LevelMeter();
+    hghPostMeter = new FFAU::LevelMeter();
+
+    lowPostMeter->setLookAndFeel(lnf);
+    midPostMeter->setLookAndFeel(lnf);
+    hghPostMeter->setLookAndFeel(lnf);
+
+    lowPostMeter->setMeterSource(audioProcessor.getMeterSource(0));
+    midPostMeter->setMeterSource(audioProcessor.getMeterSource(1));
+    hghPostMeter->setMeterSource(audioProcessor.getMeterSource(2));
+
+    addAndMakeVisible(lowPostMeter);
+    addAndMakeVisible(midPostMeter);
+    addAndMakeVisible(hghPostMeter);
+
     //oversampling
     oversamplingDropdown.addItem("No Oversampling", 1);
     for (int i = 2; i <= 7; i++) {
@@ -67,6 +86,10 @@ void JomsvikingAudioProcessorEditor::resized()
     rcrossSlider.setBounds(564, 256, 107, 128);
 
     oversamplingDropdown.setBounds(0, 256, 192, 64);
+
+    lowPostMeter->setBounds(192, 0, 214, 256);
+    midPostMeter->setBounds(406, 0, 212, 256);
+    hghPostMeter->setBounds(618, 0, 214, 256);
 }
 
 void JomsvikingAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
