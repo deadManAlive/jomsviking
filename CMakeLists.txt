@@ -5,22 +5,18 @@ cmake_minimum_required(VERSION 3.15)
 project(JOMSVIKING VERSION 0.0.1)
 
 
-# find_package(JUCE CONFIG REQUIRED)
-add_subdirectory(Lib/JUCE)
+set(CMAKE_CXX_STANDARD 17)
+add_subdirectory(Lib)
 
 juce_add_plugin(Jomsviking
-	VERSION "0.0.1"
 	COMPANY_NAME "Twillight's Sound"
 	COMPANY_COPYRIGHT "GPLv3"
 	COMPANY_WEBSITE "arsdotfm.wordpress.com"
 	COMPANY_EMAIL "embryon.id@gmail.com"
-	PLUGIN_MANUFACTURER_CODE "Manu"
-	PLUGIN_CODE "Tjax"
-	FORMATS
-		"VST3"
-	VST3_CATEGORIES
-		"Dynamics"
-		"Fx"
+	PLUGIN_MANUFACTURER_CODE Manu
+	PLUGIN_CODE Tjax
+	FORMATS VST3
+	VST3_CATEGORIES Dynamics Fx
 )
 
 juce_generate_juce_header(Jomsviking)
@@ -41,7 +37,7 @@ target_sources(Jomsviking
 
 juce_add_binary_data(Jomsviking_BinaryData
   SOURCES
-    "D:/null_/DSP/GUI_resources/Jomsviking Layout.png"
+    "Resource/Jomsviking Layout.png"
 )
 
 target_link_libraries(Jomsviking

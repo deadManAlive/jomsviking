@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "BinaryData.h"
 
 //==============================================================================
 JomsvikingAudioProcessorEditor::JomsvikingAudioProcessorEditor (JomsvikingAudioProcessor& p)
@@ -20,7 +21,7 @@ JomsvikingAudioProcessorEditor::JomsvikingAudioProcessorEditor (JomsvikingAudioP
     oversamplingDropdown.addItem("No Oversampling", 1);
     for (int i = 2; i <= 7; i++) {
         juce::String opt;
-        opt << pow(2, i);
+        opt << pow(2, i - 1);
         opt << "x";
         oversamplingDropdown.addItem(opt, i);
     }

@@ -204,8 +204,8 @@ bool JomsvikingAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* JomsvikingAudioProcessor::createEditor()
 {
-    //return new JomsvikingAudioProcessorEditor (*this); //switch to get jomsviking GUI
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new JomsvikingAudioProcessorEditor (*this); //switch to get jomsviking GUI
+    //return new juce::GenericAudioProcessorEditor(*this);
 
 }
 
