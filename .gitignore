@@ -1,4 +1,8 @@
+# Folders
 **/JuceLibraryCode
 **/Builds
 **/build
 **/.vscode
+
+# Files
+*.jucer

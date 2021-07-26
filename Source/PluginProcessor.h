@@ -83,6 +83,11 @@ public:
                               juce::dsp::LinkwitzRileyFilter<float>,
                               juce::dsp::Gain<float>> fHIghBandChain;
 
+    std::array<juce::dsp::ProcessorChain<juce::dsp::Gain<float>,
+                                         juce::dsp::LinkwitzRileyFilter<float>,
+                                         juce::dsp::LinkwitzRileyFilter<float>,
+                                         juce::dsp::Gain<float>>, 3> crossoverProcess;
+
 private:
     //==============================================================================
     //meters
@@ -90,12 +95,6 @@ private:
     //FFAU::LevelMeterSource meterSource;
     std::array<FFAU::LevelMeterSource, 3> meterSource; //low, mid, high
 
-    enum FilterChain {
-        inGain,
-        cuttingFilter,
-        allPassFilter,
-        bandPreGain
-    };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JomsvikingAudioProcessor)
 };
 
@@ -114,3 +113,19 @@ struct ProcessorSettings {
 
 ProcessorSettings getProcessorSettings(juce::AudioProcessorValueTreeState& apvts);
 
+enum ChainSelector {
+  INGAIN,
+  CROSSOVER0,
+  CROSSOVER1,
+  BANDPREGAIN
+};
+
+namespace BandSelector{
+  enum Band{
+    LOW,
+    MID,
+    HGH
+  };
+
+  static const Band bandIter[] = {LOW, MID, HGH};
+}

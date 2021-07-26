@@ -22,14 +22,14 @@ JomsvikingAudioProcessor::JomsvikingAudioProcessor()
     )
 #endif
 {
-    fLowBandChain.get<FilterChain::cuttingFilter>().setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
-    fLowBandChain.get<FilterChain::allPassFilter>().setType(juce::dsp::LinkwitzRileyFilterType::allpass);
+    fLowBandChain.get<ChainSelector::CROSSOVER0>().setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    fLowBandChain.get<ChainSelector::CROSSOVER1>().setType(juce::dsp::LinkwitzRileyFilterType::allpass);
 
-    fMidBandChain.get<FilterChain::cuttingFilter>().setType(juce::dsp::LinkwitzRileyFilterType::highpass);
-    fMidBandChain.get<FilterChain::allPassFilter>().setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    fMidBandChain.get<ChainSelector::CROSSOVER0>().setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    fMidBandChain.get<ChainSelector::CROSSOVER1>().setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
 
-    fHIghBandChain.get<FilterChain::cuttingFilter>().setType(juce::dsp::LinkwitzRileyFilterType::highpass);
-    fHIghBandChain.get<FilterChain::allPassFilter>().setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    fHIghBandChain.get<ChainSelector::CROSSOVER0>().setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    fHIghBandChain.get<ChainSelector::CROSSOVER1>().setType(juce::dsp::LinkwitzRileyFilterType::highpass);
 }
 
 JomsvikingAudioProcessor::~JomsvikingAudioProcessor()
@@ -158,41 +158,63 @@ void JomsvikingAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     }
 
     //parallel    
-    juce::AudioBuffer<float> bandBufferLow;
-    juce::AudioBuffer<float> bandBufferHigh;
-    juce::AudioBuffer<float> bandBufferMid;
+    // juce::AudioBuffer<float> bandBufferLow;
+    // juce::AudioBuffer<float> bandBufferHigh;
+    // juce::AudioBuffer<float> bandBufferMid;
+    //per Band Buffer array
+    std::array<juce::AudioBuffer<float>, 3> bufferBands;
 
-    bandBufferLow.setSize(totalNumInputChannels, bufferLength);
-    bandBufferMid.setSize(totalNumInputChannels, bufferLength);
-    bandBufferHigh.setSize(totalNumInputChannels, bufferLength);
+    // bandBufferLow.setSize(totalNumInputChannels, bufferLength);
+    // bandBufferMid.setSize(totalNumInputChannels, bufferLength);
+    // bandBufferHigh.setSize(totalNumInputChannels, bufferLength);
+    //pre Band buffer size ser
+    for(auto band : BandSelector::bandIter){
+        bufferBands[band].setSize(totalNumInputChannels, bufferLength);
+    }
 
     for (int channel = 0; channel < totalNumInputChannels; ++channel) {
         auto* channelData = buffer.getWritePointer(channel);
         auto* bufferData = buffer.getReadPointer(channel);
 
-        bandBufferLow.copyFrom(channel, 0, bufferData, bufferLength);
-        bandBufferMid.copyFrom(channel, 0, bufferData, bufferLength);
-        bandBufferHigh.copyFrom(channel, 0, bufferData, bufferLength);
+        // bandBufferLow.copyFrom(channel, 0, bufferData, bufferLength);
+        // bandBufferMid.copyFrom(channel, 0, bufferData, bufferLength);
+        // bandBufferHigh.copyFrom(channel, 0, bufferData, bufferLength);
+
+        for(auto band : BandSelector::bandIter){
+            bufferBands[band].copyFrom(channel, 0, bufferData, bufferLength);
+        }
     }
 
-    juce::dsp::AudioBlock<float> bandBlockLow(bandBufferLow);
-    juce::dsp::AudioBlock<float> bandBlockMid(bandBufferMid);
-    juce::dsp::AudioBlock<float> bandBlockHigh(bandBufferHigh);
+    // juce::dsp::AudioBlock<float> bandBlockLow(bandBufferLow);
+    // juce::dsp::AudioBlock<float> bandBlockMid(bandBufferMid);
+    // juce::dsp::AudioBlock<float> bandBlockHigh(bandBufferHigh);
+
+    juce::dsp::AudioBlock<float> bandBlockLow(bufferBands[BandSelector::LOW]);
+    juce::dsp::AudioBlock<float> bandBlockMid(bufferBands[BandSelector::MID]);
+    juce::dsp::AudioBlock<float> bandBlockHigh(bufferBands[BandSelector::HGH]);
 
     fLowBandChain.process(juce::dsp::ProcessContextReplacing<float>(bandBlockLow));
     fMidBandChain.process(juce::dsp::ProcessContextReplacing<float>(bandBlockMid));
     fHIghBandChain.process(juce::dsp::ProcessContextReplacing<float>(bandBlockHigh));
 
-    meterSource[0].measureBlock(bandBufferLow);
-    meterSource[1].measureBlock(bandBufferMid);
-    meterSource[2].measureBlock(bandBufferHigh);
+    // meterSource[0].measureBlock(bandBufferLow);
+    // meterSource[1].measureBlock(bandBufferMid);
+    // meterSource[2].measureBlock(bandBufferHigh);
+
+    meterSource[BandSelector::LOW].measureBlock(bufferBands[BandSelector::LOW]);
+    meterSource[BandSelector::MID].measureBlock(bufferBands[BandSelector::MID]);
+    meterSource[BandSelector::HGH].measureBlock(bufferBands[BandSelector::HGH]);
 
     buffer.clear();
 
     for (int channel = 0; channel < totalNumInputChannels; ++channel) {
-        auto* bandDataLow = bandBufferLow.getReadPointer(channel);
-        auto* bandDataMid = bandBufferMid.getReadPointer(channel);
-        auto* bandDataHigh = bandBufferHigh.getReadPointer(channel);
+        // auto* bandDataLow = bandBufferLow.getReadPointer(channel);
+        // auto* bandDataMid = bandBufferMid.getReadPointer(channel);
+        // auto* bandDataHigh = bandBufferHigh.getReadPointer(channel);
+
+        auto* bandDataLow = bufferBands[BandSelector::LOW].getReadPointer(channel);
+        auto* bandDataMid = bufferBands[BandSelector::MID].getReadPointer(channel);
+        auto* bandDataHigh = bufferBands[BandSelector::HGH].getReadPointer(channel);
 
         buffer.addFrom(channel, 0, bandDataLow, bufferLength);
         buffer.addFrom(channel, 0, bandDataMid, bufferLength);
@@ -291,20 +313,20 @@ ProcessorSettings getProcessorSettings(juce::AudioProcessorValueTreeState& apvts
 void JomsvikingAudioProcessor::updateProcessorChains() {
     auto settingsCtr = getProcessorSettings(processTreeState);
 
-    fLowBandChain.get<FilterChain::inGain>().setGainLinear(settingsCtr.mainInGain);
-    fLowBandChain.get<FilterChain::cuttingFilter>().setCutoffFrequency(settingsCtr.tsLXover);
-    fLowBandChain.get<FilterChain::allPassFilter>().setCutoffFrequency(settingsCtr.tsRXover);
-    fLowBandChain.get<FilterChain::bandPreGain>().setGainLinear(settingsCtr.tsLowInGain);
+    fLowBandChain.get<ChainSelector::INGAIN>().setGainLinear(settingsCtr.mainInGain);
+    fLowBandChain.get<ChainSelector::CROSSOVER0>().setCutoffFrequency(settingsCtr.tsLXover);
+    fLowBandChain.get<ChainSelector::CROSSOVER1>().setCutoffFrequency(settingsCtr.tsRXover);
+    fLowBandChain.get<ChainSelector::BANDPREGAIN>().setGainLinear(settingsCtr.tsLowInGain);
 
-    fMidBandChain.get<FilterChain::inGain>().setGainLinear(settingsCtr.mainInGain);
-    fMidBandChain.get<FilterChain::cuttingFilter>().setCutoffFrequency(settingsCtr.tsLXover);
-    fMidBandChain.get<FilterChain::allPassFilter>().setCutoffFrequency(settingsCtr.tsRXover);
-    fMidBandChain.get<FilterChain::bandPreGain>().setGainLinear(settingsCtr.tsMidInGain);
+    fMidBandChain.get<ChainSelector::INGAIN>().setGainLinear(settingsCtr.mainInGain);
+    fMidBandChain.get<ChainSelector::CROSSOVER0>().setCutoffFrequency(settingsCtr.tsLXover);
+    fMidBandChain.get<ChainSelector::CROSSOVER1>().setCutoffFrequency(settingsCtr.tsRXover);
+    fMidBandChain.get<ChainSelector::BANDPREGAIN>().setGainLinear(settingsCtr.tsMidInGain);
 
-    fHIghBandChain.get<FilterChain::inGain>().setGainLinear(settingsCtr.mainInGain);
-    fHIghBandChain.get<FilterChain::cuttingFilter>().setCutoffFrequency(settingsCtr.tsLXover);
-    fHIghBandChain.get<FilterChain::allPassFilter>().setCutoffFrequency(settingsCtr.tsRXover);
-    fHIghBandChain.get<FilterChain::bandPreGain>().setGainLinear(settingsCtr.tsHghInGain);
+    fHIghBandChain.get<ChainSelector::INGAIN>().setGainLinear(settingsCtr.mainInGain);
+    fHIghBandChain.get<ChainSelector::CROSSOVER0>().setCutoffFrequency(settingsCtr.tsLXover);
+    fHIghBandChain.get<ChainSelector::CROSSOVER1>().setCutoffFrequency(settingsCtr.tsRXover);
+    fHIghBandChain.get<ChainSelector::BANDPREGAIN>().setGainLinear(settingsCtr.tsHghInGain);
 }
 
 //==============================================================================
