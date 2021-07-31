@@ -1,0 +1,13 @@
+target_sources(Jomsviking
+    PRIVATE
+        Compressor.cpp
+        CrestFactor.cpp
+        DelayLine.cpp
+        EnvelopeFollower.cpp
+        Expander.cpp
+        GainComputer.cpp
+        LevelDetector.cpp
+        LevelEnvelopeFollower.cpp
+        LookAhead.cpp
+        SmoothingFilter.cpp
+)
