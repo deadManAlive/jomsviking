@@ -1,5 +1,7 @@
 #pragma once
 
+#include <juce_core/juce_core.h>
+
 /*Simple exponential moving average filter, also known as 1-pole iir filter
  * This class can be used to smooth values over a certain time frame
  */
