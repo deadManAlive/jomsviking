@@ -3,4 +3,4 @@
 	url = https://github.com/juce-framework/JUCE.git
 [submodule "Lib/ff_meters"]
 	path = Lib/ff_meters
-	url = https://github.com/ffAudio/ff_meters.git
+	url = https://github.com/deadManAlive/ff_meters.git
