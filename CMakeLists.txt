@@ -10,7 +10,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 option(JUCE_ENABLE_MODULE_SOURCE_GROUPS "Enable Module Source Groups" ON)
 
 juce_add_plugin(Jomsviking
-	COMPANY_NAME "Twillight's Sound"
+	COMPANY_NAME "Tauri Invictus"
 	COMPANY_COPYRIGHT "GPLv3"
 	COMPANY_WEBSITE "arsdotfm.wordpress.com"
 	COMPANY_EMAIL "embryon.id@gmail.com"
